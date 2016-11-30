@@ -34,84 +34,51 @@ class ConfigBuilder extends ConfigBuilderObject{
 		$this->readers[]=$reader;
 	}
 
-	/**
-	 *
-	 * @return ConfigContainer
-	 */
-	public function parse(){
-		$data=[];
+    /**
+     *
+     * @return ConfigContainer
+     */
+    public function parse(){
+        $result=[];
+        $objects=[];
+        $arrays=[];
+        $values=[];
+        foreach($this->getObjects() as $name=>$builder){
+            $objects[$name]=$this->parseObject($this->readers,$name,$builder);
+        }
 
-		foreach($this->readers as $reader){
-			$data=$this->mergeNodes($data,$this->parseReader($reader));
-		}
-
-		return new ConfigContainer($data['objects'],$data['arrays'],$data['values']);
-	}
-
-	/**
-	 *
-	 * @param ConfigContainer[][] $originNode
-	 * @param ConfigContainer[] $newNodes
-	 * @return ConfigContainer[][]
-	 */
-	private function mergeNodes($originNode,$newNodes){
-		foreach($newNodes as $nodeName=>$node){
-			if(!isset($originNode[$nodeName])){
-				$originNode[$nodeName]=[];
-			}
-
-			$originNode[$nodeName]=array_merge($originNode[$nodeName],$node);
-		}
-
-		return $originNode;
-
-	}
-
-	/**
-	 *
-	 * @param ObjectReader $reader
-	 * @return ConfigContainer[]
-	 */
-	private function parseReader(ObjectReader $reader){
-	    $result=[];
-		$objects=[];
-		$arrays=[];
-		$values=[];
-		foreach($this->getObjects() as $name=>$builder){
-			$objects[$name]=$this->parseObject($reader,$name,$builder);
-		}
-
-		$result['objects']=$objects;
+        $result['objects']=$objects;
 
         foreach($this->getValues() as $name=>$builder){
-            $values[$name]=$this->parseValue($reader,$name,$builder);
+            $values[$name]=$this->parseValue($this->readers,$name,$builder);
         }
 
         $result['values']=$values;
 
         foreach($this->getArrays() as $name=>$builder){
-            $arrays[$name]=$this->parseArray($reader,$name,$builder);
+            $arrays[$name]=$this->parseArray($this->readers,$name,$builder);
         }
 
         $result['arrays']=$arrays;
 
-        return $result;
-	}
+		return new ConfigContainer($result['objects'],$result['arrays'],$result['values']);
+
+    }
 
     /**
      *
-     * @param ObjectReader $reader
+     * @param ObjectReader[] $readers
      * @param $name
      * @param ConfigBuilderValue $builder
      * @return ConfigContainer[]
      * @throws ConfigException
      * @throws InvalidValueException
      */
-    private function parseValue(ObjectReader $reader, $name,ConfigBuilderValue $builder){
+    private function parseValue(array $readers, $name, ConfigBuilderValue $builder){
 
         $value=null;
         try{
-            $value=$reader->getValue($name);
+            $value=$this->readValue($readers,$name);
         }
         catch(ConfigException $e){
             if($builder->isRequired()){
@@ -121,7 +88,7 @@ class ConfigBuilder extends ConfigBuilderObject{
         }
 
         if(!$builder->isValid($value)){
-            throw new InvalidValueException($value,$builder->getType());
+            throw new InvalidValueException($name,$value,$builder->getType());
         }
 
         return $value;
@@ -129,26 +96,26 @@ class ConfigBuilder extends ConfigBuilderObject{
 
     /**
      *
-     * @param ObjectReader $reader
+     * @param ObjectReader[] $readers
      * @param $name
      * @param ConfigBuilderObject $node
      * @return ConfigContainer
      */
-	private function parseObject(ObjectReader $reader, $name,ConfigBuilderObject $node){
-	    $reader=$reader->getObject($name);
+	private function parseObject(array $readers, $name, ConfigBuilderObject $node){
+	    $readers=$this->readObject($readers,$name);
         $objects=[];
         $arrays=[];
         $values=[];
         foreach($node->getObjects() as $name=>$builder){
-            $objects[$name]=$this->parseObject($reader,$name,$builder);
+            $objects[$name]=$this->parseObject($readers,$name,$builder);
         }
 
         foreach($node->getValues() as $name=>$builder){
-            $values[$name]=$this->parseValue($reader,$name,$builder);
+            $values[$name]=$this->parseValue($readers,$name,$builder);
         }
 
         foreach($node->getArrays() as $name=>$builder){
-            $arrays[$name]=$this->parseArray($reader,$name,$builder);
+            $arrays[$name]=$this->parseArray($readers,$name,$builder);
         }
 
         return new ConfigContainer($objects,$arrays,$values);
@@ -156,34 +123,129 @@ class ConfigBuilder extends ConfigBuilderObject{
 
     /**
      *
-     * @param ObjectReader $reader
+     * @param ArrayReader[] $readers
      * @param $name
      * @param ConfigBuilderArray $builder
      * @return ConfigContainer[]
      */
-    private function parseArray(ObjectReader $reader, $name,ConfigBuilderArray $builder){
+    private function parseArray(array $readers, $name, ConfigBuilderArray $builder){
         $results=[];
-        $reader=$reader->getArray($name);
+        $readers=$this->readArray($readers,$name);
         $type=$builder->getType();
         $builderArray=$builder->getValue();
         switch ($type){
             case 'object':
-                foreach($reader->getObjects() as $name=>$builder){
-                    $results[$name]=$this->parseObject($reader,$name,$builderArray);
+                foreach($readers[0]->getObjects() as $name=> $builder){
+                    $results[$name]=$this->parseObject($readers,$name,$builderArray);
                 }
                 break;
             case 'array':
-                foreach($reader->getArrays() as $name=>$builder){
-                    $results[$name]=$this->parseArray($reader,$name,$builderArray);
+                foreach($readers[0]->getArrays() as $name=> $builder){
+                    $results[$name]=$this->parseArray($readers,$name,$builderArray);
                 }
                 break;
             default:
-                foreach($reader->getValues() as $name=>$builder){
-                    $results[$name]=$this->parseValue($reader,$name,$builderArray);
+                foreach($readers[0]->getValues() as $name=> $builder){
+                    $results[$name]=$this->parseValue($readers,$name,$builderArray);
                 }
 
         }
         return $results;
+    }
+
+    /**
+     * @param ObjectReader[] $readers
+     * @param string $name
+     * @return mixed
+     * @throws ElementNotFoundException
+     * @throws TooManyElementException
+     */
+    private function readValue(array $readers, $name)
+    {
+        $records=[];
+        $exception=null;
+        foreach($readers as $reader){
+            try{
+                $records[]=$reader->getValue($name);
+            }
+            catch(ElementNotFoundException $e){
+                $exception=$e;
+            }
+        }
+
+        if(!$records){
+            throw $exception;
+        }
+
+        if(count($records)>1){
+            throw new TooManyElementException($name);
+        }
+        return $records[0];
+
+    }
+
+    /**
+     * @param ObjectReader[] $readers
+     * @param string $name
+     * @return mixed
+     * @throws ElementNotFoundException
+     * @throws TooManyElementException
+     */
+    private function readObject(array $readers, $name)
+    {
+        $records=[];
+        $exception=null;
+        foreach($readers as $reader){
+            try{
+                $records[]=$reader->getObject($name);
+            }
+            catch(ElementNotFoundException $e){
+                $exception=$e;
+            }
+        }
+
+        if(!$records){
+            throw $exception;
+        }
+
+        if(count($records)>1){
+            throw new TooManyElementException($name);
+        }
+
+        return $records;
+
+    }
+
+    /**
+     * @param ObjectReader[] $readers
+     * @param string $name
+     * @return mixed
+     * @throws ElementNotFoundException
+     * @throws TooManyElementException
+     */
+    private function readArray(array $readers, $name)
+    {
+        $records=[];
+        $exception=null;
+        foreach($readers as $reader){
+            try{
+                $records[]=$reader->getArray($name);
+            }
+            catch(ElementNotFoundException $e){
+                $exception=$e;
+            }
+        }
+
+        if(!$records){
+            throw $exception;
+        }
+
+        if(count($records)>1){
+            throw new TooManyElementException($name);
+        }
+
+        return $records;
+
     }
 
 }

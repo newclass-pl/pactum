@@ -72,7 +72,7 @@ class ConfigBuilderValue{
             case 'number':
                 return $value===null || is_numeric($value);
             case 'boolean':
-                return $value===null || is_bool($value);
+                return $value===null || (is_bool($value)|| $value==='true'||$value==='false');
                 break;
                 default:
                     throw new InvalidTypeException($type);

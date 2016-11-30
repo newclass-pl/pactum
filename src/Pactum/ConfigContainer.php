@@ -16,13 +16,13 @@ namespace Pactum;
 /**
  * Config container.
  *
- * @author Michal Tomczak (michal.tomczak@itephp.com)
+ * @author Michal Tomczak (michal.tomczak@newclass.pl)
  */
 class ConfigContainer{
 	
 	/**
 	 *
-	 * @var string[]
+	 * @var mixed[]
 	 */
 	private $arrays=[];
 
@@ -52,27 +52,40 @@ class ConfigContainer{
 	/**
 	 *
 	 * @param string $name
-	 * @return ConfigContainer[]
+	 * @return ConfigContainer
 	 * @throws ConfigException
 	 */	
-	public function getObjects($name){
+	public function getObject($name){
 		if(!isset($this->objects[$name])){
-			throw new ConfigException('Node '.$name.' not found.');
+			throw new ConfigException('Object "'.$name.'" not found.');
 		}
 		return $this->objects[$name];
 	}
 
-	/**
+    /**
+     *
+     * @param string $name
+     * @return mixed[]
+     * @throws ConfigException
+     */
+    public function getArray($name){
+        if(!isset($this->arrays[$name])){
+            throw new ConfigException('Array "'.$name.'" not found.');
+        }
+        return $this->arrays[$name];
+    }
+
+    /**
 	 *
 	 * @param string $name
-	 * @return string
+	 * @return mixed
 	 * @throws ConfigException
 	 */	
-	public function getAttribute($name){
-		if(!isset($this->arrays[$name])){
-			throw new ConfigException('Argument '.$name.' not found.');
+	public function getValue($name){
+		if(!isset($this->values[$name])){
+			throw new ConfigException('Value "'.$name.'" not found.');
 		}
-		return $this->arrays[$name];
+		return $this->values[$name];
 	}
 
 }

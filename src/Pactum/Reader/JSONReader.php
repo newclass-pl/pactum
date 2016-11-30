@@ -23,7 +23,7 @@ class JSONReader implements ObjectReader
     private $json;
     private $path;
 
-    public function __construct($data, $type='f',$path='')
+    public function __construct($data, $type='f',$path='root')
     {
         if($type==='f'){
             if(!file_exists($data)){
@@ -35,7 +35,6 @@ class JSONReader implements ObjectReader
 
             $data=file_get_contents($data);
             $type='s';
-            $path=$data;
         }
 
         if($type==='s'){

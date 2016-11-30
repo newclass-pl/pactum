@@ -13,17 +13,15 @@
 namespace Pactum;
 
 
-class InvalidValueException extends ConfigException
+class TooManyElementException extends ConfigException
 {
 
     /**
-     * InvalidValueException constructor.
+     * TooManyElementException constructor.
      * @param string $name
-     * @param mixed $value
-     * @param string $type
      */
-    public function __construct($name,$value, $type)
+    public function __construct($name)
     {
-        parent::__construct('Value '.$name.'="'.$value.'"  is not '.$type.'.');
+        parent::__construct('Too many elements "'.$name.'".');
     }
 }
