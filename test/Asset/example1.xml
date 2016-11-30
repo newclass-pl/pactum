@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+
+<content>
+
+	<node var1="value1" var2="value2">
+		<sub-node var1="sn1"/>
+		<sub-node var1="sn2" var2="sn2d"/>
+	</node>
+</content>
