@@ -15,7 +15,7 @@ namespace Pactum;
 
 /**
  * Config container.
- *
+ * @package Pactum
  * @author Michal Tomczak (michal.tomczak@newclass.pl)
  */
 class ConfigContainer{

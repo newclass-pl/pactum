@@ -1,12 +1,14 @@
 <?php
 /**
- * Unauthorized copying of this file, via any medium is strictly prohibited
- * Proprietary and confidential
- * Written by Michal Tomczak <michal.tomczak@newaxis.pl>
+ * Pactum: Config manager
+ * Copyright (c) NewClass (http://newclass.pl)
  *
- * @copyright     Copyright (c) Newaxis (http://newaxis.pl)
- * @link          https://cogitary-polisy.aria.pl
- * @license       http://www.binpress.com/license/view/l/b0e782df3e50d424a32d613af2c4937b
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the file LICENSE
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @copyright     Copyright (c) NewClass (http://newclass.pl)
+ * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
 
@@ -17,12 +19,32 @@ use Pactum\ArrayReader;
 use Pactum\ElementNotFoundException;
 use Pactum\ObjectReader;
 
+/**
+ * Class JSONReader
+ * @package Pactum\Reader
+ * @author Michal Tomczak (michal.tomczak@newclass.pl)
+ */
 class JSONReader implements ObjectReader
 {
 
+    /**
+     * @var mixed[]
+     */
     private $json;
+
+    /**
+     * @var string
+     */
     private $path;
 
+    /**
+     * JSONReader constructor.
+     * @param mixed $data
+     * @param string $type
+     * @param string $path
+     * @throws FileNotFoundException
+     * @throws FileNotReadableException
+     */
     public function __construct($data, $type='f',$path='root')
     {
         if($type==='f'){

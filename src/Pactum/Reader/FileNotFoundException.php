@@ -14,10 +14,13 @@
 
 namespace Pactum\Reader;
 
-
-
 use Pactum\ConfigException;
 
+/**
+ * Class FileNotFoundException
+ * @package Pactum\Reader
+ * @author Michal Tomczak (michal.tomczak@newclass.pl)
+ */
 class FileNotFoundException extends ConfigException
 {
     /**

@@ -1,3 +1,15 @@
 {
-  "other":"file"
+  "other": "file",
+  "k_array": [
+    [
+      {
+        "k_array_var": "set"
+      }
+    ],
+    [
+      {
+        "k_array_var": "next"
+      }
+    ]
+  ]
 }

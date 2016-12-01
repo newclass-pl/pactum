@@ -15,13 +15,12 @@ namespace Pactum\Reader;
 use Pactum\ArrayReader;
 use Pactum\ElementNotFoundException;
 use Pactum\InvalidTypeException;
-use Pactum\InvalidValueException;
 use Pactum\ObjectReader;
 
 /**
  * Xml file reader
- *
- * @author Michal Tomczak (michal.tomczak@itephp.com)
+ * @package Pactum\Reader
+ * @author Michal Tomczak (michal.tomczak@newclass.pl)
  */
 class XMLReader implements ObjectReader{
 	
@@ -30,8 +29,20 @@ class XMLReader implements ObjectReader{
 	 * @var \SimpleXMLElement
 	 */ 
 	private $data;
+
+    /**
+     * @var string
+     */
     private $path;
 
+    /**
+     * XMLReader constructor.
+     * @param mixed $data
+     * @param string $type
+     * @param string $path
+     * @throws FileNotFoundException
+     * @throws FileNotReadableException
+     */
     public function __construct($data, $type='f',$path='root')
     {
         if($type==='f'){

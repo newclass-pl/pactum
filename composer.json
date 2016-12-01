@@ -1,12 +1,12 @@
 {
-    "name": "iteracja/pactum",
+    "name": "newclass/pactum",
     "description": "The Php config manager.",
     "type": "library",
     "license": "MIT",
     "authors": [
         {
             "name": "Michal Tomczak",
-            "email": "michal.tomczak@iteracja.com"
+            "email": "michal.tomczak@newclass.pl"
         }
     ],
     "require": {

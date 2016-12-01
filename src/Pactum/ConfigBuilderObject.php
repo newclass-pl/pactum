@@ -15,27 +15,28 @@ namespace Pactum;
 
 /**
  * Config builder.
- *
- * @author Michal Tomczak (michal.tomczak@itephp.com)
+ * @package Pactum
+ * @author Michal Tomczak (michal.tomczak@newclass.pl)
  */
-class ConfigBuilderObject{
-
-	/**
-	 *
-	 * @var ConfigBuilderValue[]
-	 */	
-	private $values=[];
-
-	/**
-	 *
-	 * @var ConfigBuilderObject[]
-	 */	
-	private $objects=[];
+class ConfigBuilderObject
+{
 
     /**
-     * @var ConfigBuilderArray
+     *
+     * @var ConfigBuilderValue[]
      */
-    private $arrays=[];
+    private $values = [];
+
+    /**
+     *
+     * @var ConfigBuilderObject[]
+     */
+    private $objects = [];
+
+    /**
+     * @var ConfigBuilderArray[]
+     */
+    private $arrays = [];
 
     /**
      *
@@ -43,18 +44,9 @@ class ConfigBuilderObject{
      * @param string $default
      * @return $this
      */
-	public function addString($name,$default=null){
-        return $this->addValue('string',$name,$default);
-	}
-
-    /**
-     *
-     * @param string $name
-     * @param string $default
-     * @return $this
-     */
-    public function addBoolean($name,$default=null){
-        return $this->addValue('boolean',$name,$default);
+    public function addString($name, $default = null)
+    {
+        return $this->addValue('string', $name, $default);
     }
 
     /**
@@ -63,8 +55,20 @@ class ConfigBuilderObject{
      * @param string $default
      * @return $this
      */
-    public function addNumber($name,$default=null){
-        return $this->addValue('number',$name,$default);
+    public function addBoolean($name, $default = null)
+    {
+        return $this->addValue('boolean', $name, $default);
+    }
+
+    /**
+     *
+     * @param string $name
+     * @param string $default
+     * @return $this
+     */
+    public function addNumber($name, $default = null)
+    {
+        return $this->addValue('number', $name, $default);
     }
 
     /**
@@ -73,51 +77,45 @@ class ConfigBuilderObject{
      * @param mixed $default
      * @return $this
      */
-    private function addValue($type,$name,$default){
-        $this->values[$name]=new ConfigBuilderValue($type,$default);
+    private function addValue($type, $name, $default)
+    {
+        $this->values[$name] = new ConfigBuilderValue($type, $default);
         return $this;
     }
 
     /**
-     * @param string $name
-     * @return ConfigBuilderObject
+     *
+     * @return ConfigBuilderValue[]
      */
-	public function createObject($name){
-	    $node=new ConfigBuilderObject();
-	    $this->addObject($name,$node);
-	    return $node;
+    public function getValues()
+    {
+        return $this->values;
     }
 
-	/**
-	 *
-	 * @return ConfigBuilderValue[]
-	 */	
-	public function getValues(){
-		return $this->values;
-	}
-
-	/**
-	 *
-	 * @param string $name
-	 * @return string
-	 * @throws ConfigException
-	 */	
-	public function getValue($name){
-		if(!isset($this->values[$name])){
-			throw new ConfigException('Argument '.$name.' not found.');
-		}
-		return $this->values[$name];
-	}
+    /**
+     *
+     * @param string $name
+     * @return string
+     * @throws ConfigException
+     */
+    public function getValue($name)
+    {
+        if (!isset($this->values[$name])) {
+            throw new ConfigException('Argument ' . $name . ' not found.');
+        }
+        return $this->values[$name];
+    }
 
     /**
      *
      * @param $name
      * @return ConfigBuilderObject
      */
-	public function addObject($name){
-		$this->objects[$name]=new ConfigBuilderObject();
-		return $this->objects[$name];
-	}
+    public function addObject($name)
+    {
+        $this->objects[$name] = new ConfigBuilderObject();
+        return $this->objects[$name];
+    }
 
     /**
      *
@@ -125,8 +123,9 @@ class ConfigBuilderObject{
      * @param mixed $value
      * @return ConfigBuilderArray
      */
-    public function addArray($name,$value){
-        $this->arrays[$name]=new ConfigBuilderArray($value);
+    public function addArray($name, $value)
+    {
+        $this->arrays[$name] = new ConfigBuilderArray($value);
         return $this->arrays[$name];
     }
 
@@ -134,7 +133,8 @@ class ConfigBuilderObject{
      *
      * @return ConfigBuilderArray[]
      */
-    public function getArrays(){
+    public function getArrays()
+    {
         return $this->arrays;
     }
 
@@ -144,32 +144,35 @@ class ConfigBuilderObject{
      * @return ConfigBuilderArray
      * @throws ConfigException
      */
-    public function getArray($name){
-        if(!isset($this->arrays[$name])){
-            throw new ConfigException('Array '.$name.' not found.');
+    public function getArray($name)
+    {
+        if (!isset($this->arrays[$name])) {
+            throw new ConfigException('Array ' . $name . ' not found.');
         }
         return $this->arrays[$name];
     }
 
     /**
-	 *
-	 * @return ConfigBuilderObject[]
-	 */	
-	public function getObjects(){
-		return $this->objects;
-	}
+     *
+     * @return ConfigBuilderObject[]
+     */
+    public function getObjects()
+    {
+        return $this->objects;
+    }
 
-	/**
-	 *
-	 * @param string $name
-	 * @return ConfigBuilderObject
-	 * @throws ConfigException
-	 */	
-	public function getObject($name){
-		if(!isset($this->objects[$name])){
-			throw new ConfigException('Object '.$name.' not found.');
-		}
-		return $this->objects[$name];
-	}
+    /**
+     *
+     * @param string $name
+     * @return ConfigBuilderObject
+     * @throws ConfigException
+     */
+    public function getObject($name)
+    {
+        if (!isset($this->objects[$name])) {
+            throw new ConfigException('Object ' . $name . ' not found.');
+        }
+        return $this->objects[$name];
+    }
 
 }

@@ -15,8 +15,8 @@ namespace Pactum;
 
 /**
  * Config exception.
- *
- * @author Michal Tomczak (michal.tomczak@itephp.com)
+ * @package Pactum
+ * @author Michal Tomczak (michal.tomczak@newclass.pl)
  */
 class ConfigException extends \Exception{
 

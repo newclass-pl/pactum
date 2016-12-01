@@ -14,6 +14,6 @@ Installation
 
 The best way to install is to use the composer by command:
 
-composer require iteracja/pactum
+composer require newclass/pactum
 
 composer install

@@ -15,8 +15,8 @@ namespace Pactum;
 
 /**
  * Source reader.
- *
- * @author Michal Tomczak (michal.tomczak@itephp.com)
+ * @package Pactum
+ * @author Michal Tomczak (michal.tomczak@newclass.pl)
  */
 interface ObjectReader{
 

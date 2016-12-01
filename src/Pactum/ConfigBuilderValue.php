@@ -15,7 +15,7 @@ namespace Pactum;
 
 /**
  * Config Argument.
- *
+ * @package Pactum
  * @author Michal Tomczak (michal.tomczak@newclass.pl)
  */
 class ConfigBuilderValue{
@@ -53,7 +53,7 @@ class ConfigBuilderValue{
 		$this->required=$required;
 
         if(!$this->isValid($default)){
-            throw new InvalidValueException($default,$this->type);
+            throw new InvalidValueException('',$default,$this->type);
         }
 
     }
@@ -72,10 +72,10 @@ class ConfigBuilderValue{
             case 'number':
                 return $value===null || is_numeric($value);
             case 'boolean':
-                return $value===null || (is_bool($value)|| $value==='true'||$value==='false');
+                return $value===null || is_bool($value);
                 break;
                 default:
-                    throw new InvalidTypeException($type);
+                    throw new InvalidTypeException($this->type);
 
         }
     }

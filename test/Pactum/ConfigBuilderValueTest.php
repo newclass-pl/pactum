@@ -1,14 +1,15 @@
 <?php
 /**
- * Unauthorized copying of this file, via any medium is strictly prohibited
- * Proprietary and confidential
- * Written by Michal Tomczak <michal.tomczak@newaxis.pl>
+ * Pactum: Config manager
+ * Copyright (c) NewClass (http://newclass.pl)
  *
- * @copyright     Copyright (c) Newaxis (http://newaxis.pl)
- * @link          https://cogitary-polisy.aria.pl
- * @license       http://www.binpress.com/license/view/l/b0e782df3e50d424a32d613af2c4937b
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the file LICENSE
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @copyright     Copyright (c) NewClass (http://newclass.pl)
+ * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
-
 
 namespace Test\Pactum;
 
@@ -16,9 +17,17 @@ namespace Test\Pactum;
 use Pactum\ConfigBuilderValue;
 use Pactum\InvalidValueException;
 
+/**
+ * Class ConfigBuilderValueTest
+ * @package Test\Pactum
+ * @author Michal Tomczak (michal.tomczak@newclass.pl)
+ */
 class ConfigBuilderValueTest extends \PHPUnit_Framework_TestCase
 {
 
+    /**
+     *
+     */
     public function testGetters(){
         $builder=new ConfigBuilderValue('string','default');
 
@@ -33,6 +42,9 @@ class ConfigBuilderValueTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($builder->isRequired());
     }
 
+    /**
+     *
+     */
     public function testTypeString(){
         $e=$this->getException('string','data');
         $this->assertNull($e);
@@ -42,6 +54,9 @@ class ConfigBuilderValueTest extends \PHPUnit_Framework_TestCase
 
     }
 
+    /**
+     *
+     */
     public function testTypeNumber(){
         $e=$this->getException('number',12);
         $this->assertNull($e);
@@ -54,6 +69,9 @@ class ConfigBuilderValueTest extends \PHPUnit_Framework_TestCase
 
     }
 
+    /**
+     *
+     */
     public function testTypeBoolean(){
         $e=$this->getException('boolean',true);
         $this->assertNull($e);
@@ -66,6 +84,11 @@ class ConfigBuilderValueTest extends \PHPUnit_Framework_TestCase
 
     }
 
+    /**
+     * @param string $type
+     * @param mixed $default
+     * @return \Exception|null
+     */
     private function getException($type,$default){
         $exception=null;
 

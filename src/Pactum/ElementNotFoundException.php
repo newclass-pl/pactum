@@ -14,13 +14,17 @@
 
 namespace Pactum;
 
-
+/**
+ * Class ElementNotFoundException
+ * @package Pactum
+ * @author Michal Tomczak (michal.tomczak@newclass.pl)
+ */
 class ElementNotFoundException extends ConfigException
 {
 
     /**
      * ElementNotFoundException constructor.
-     * @param $containerPath
+     * @param string $containerPath
      * @param string $name
      */
     public function __construct($containerPath, $name)

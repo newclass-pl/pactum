@@ -15,7 +15,7 @@ namespace Pactum;
 
 /**
  * Config builder.
- *
+ * @package Pactum
  * @author Michal Tomczak (michal.tomczak@newclass.pl)
  */
 class ConfigBuilder extends ConfigBuilderObject{
@@ -68,7 +68,7 @@ class ConfigBuilder extends ConfigBuilderObject{
     /**
      *
      * @param ObjectReader[] $readers
-     * @param $name
+     * @param string $name
      * @param ConfigBuilderValue $builder
      * @return ConfigContainer[]
      * @throws ConfigException
@@ -97,7 +97,7 @@ class ConfigBuilder extends ConfigBuilderObject{
     /**
      *
      * @param ObjectReader[] $readers
-     * @param $name
+     * @param string $name
      * @param ConfigBuilderObject $node
      * @return ConfigContainer
      */
@@ -124,7 +124,7 @@ class ConfigBuilder extends ConfigBuilderObject{
     /**
      *
      * @param ArrayReader[] $readers
-     * @param $name
+     * @param string $name
      * @param ConfigBuilderArray $builder
      * @return ConfigContainer[]
      */
