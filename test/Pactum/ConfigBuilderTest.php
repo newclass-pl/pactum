@@ -44,7 +44,7 @@ class ConfigBuilderTest extends \PHPUnit_Framework_TestCase{
             ->addNumber("number2")
             ->addString("text")
             ->addString("other")
-            ->addArray("d_array",new ConfigBuilderObject('deeper'))
+            ->addArray("d_array",new ConfigBuilderObject())
             ->getValue()->addString("test");
 
         $this->config->addArray("v_array",new ConfigBuilderValue('number'));
