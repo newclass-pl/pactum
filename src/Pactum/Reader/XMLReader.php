@@ -144,4 +144,12 @@ class XMLReader implements ObjectReader{
             throw new InvalidTypeException($value);
         }
     }
+
+    /**
+     * @return string
+     */
+    public function getPath()
+    {
+        return $this->path;
+    }
 }

@@ -17,6 +17,8 @@ use Pactum\ConfigBuilder;
 use Pactum\ConfigBuilderObject;
 use Pactum\ConfigBuilderValue;
 use Pactum\ConfigContainer;
+use Pactum\ElementNotFoundException;
+use Pactum\InvalidNumberElementException;
 use Pactum\Reader\JSONReader;
 use Pactum\Reader\XMLReader;
 
@@ -44,15 +46,19 @@ class ConfigBuilderTest extends \PHPUnit_Framework_TestCase{
             ->addNumber("number2")
             ->addString("text")
             ->addString("other")
-            ->addArray("d_array",new ConfigBuilderObject())
+            ->addMixed("v_mixed1")
+            ->addMixed("v_mixed2")
+            ->addArray("d_array",new ConfigBuilderObject(),1,4)
             ->getValue()->addString("test");
 
-        $this->config->addArray("v_array",new ConfigBuilderValue('number'));
+        $this->config->addArray("v_array",new ConfigBuilderValue('number'),4);
         $this->config->addObject("v_object")
             ->addString("v_text")
             ->addNumber("number",1233);
 //        $this->config->addArray("k_array",new ConfigBuilderArray(new ConfigBuilderObject()))
 //            ->getValue()->getValue()->addString('k_array_var');
+        $this->config->addArray("n_array",new ConfigBuilderValue('number'));
+
     }
 
     /**
@@ -74,15 +80,44 @@ class ConfigBuilderTest extends \PHPUnit_Framework_TestCase{
 
     }
 
+    public function testParseXMLInvalidNumberElementException(){
+
+        $path=realpath(__DIR__.'/..');
+        $this->config=new ConfigBuilder();
+        $this->config->addArray('list',new ConfigBuilderValue('number'),3);
+
+        $xmlReader=new XMLReader($path.'/Asset/example3.xml');
+        $this->config->addReader($xmlReader);
+        $exception=$this->getException($this->config);
+        $this->assertNotNull($exception);
+        $this->assertEquals(InvalidNumberElementException::class,get_class($exception));
+        $this->assertEquals('Invalid number element "root->list". Required 3, received 2.',$exception->getMessage());
+
+        $this->config=new ConfigBuilder();
+        $this->config->addArray('list',new ConfigBuilderValue('number'),0,1);
+
+        $xmlReader=new XMLReader($path.'/Asset/example3.xml');
+        $this->config->addReader($xmlReader);
+        $exception=$this->getException($this->config);
+        $this->assertNotNull($exception);
+        $this->assertEquals(InvalidNumberElementException::class,get_class($exception));
+        $this->assertEquals('Invalid number element "root->list". Required 1, received 2.',$exception->getMessage());
+
+    }
+
+
+
     /**
      * @param ConfigContainer $container
      */
-    private function checkAssert($container){
+    private function checkAssert(ConfigContainer $container){
         $this->assertEquals(true,$container->getValue('booleanTrue'));
         $this->assertEquals(false,$container->getValue('booleanFalse'));
         $this->assertEquals(1,$container->getValue('number1'));
         $this->assertEquals(0.65,$container->getValue('number2'));
         $this->assertEquals('value text',$container->getValue('text'));
+        $this->assertEquals('test',$container->getValue('v_mixed1'));
+        $this->assertEquals(true,$container->getValue('v_mixed2'));
         $array=$container->getArray("d_array");
         $this->assertCount(1,$array);
         /**
@@ -96,7 +131,9 @@ class ConfigBuilderTest extends \PHPUnit_Framework_TestCase{
         $object=$container->getObject('v_object');
         $this->assertEquals('data',$object->getValue('v_text'));
         $this->assertEquals(1233,$object->getValue('number'));
-//        $array=$container->getArray("k_array");
+        $this->assertEquals([],$container->getArray('n_array'));
+
+        //        $array=$container->getArray("k_array");
 //        $this->assertCount(2,$array);
 //        $this->assertEquals('set',$array[0][0]->getValue('k_array_var'));
 //        $this->assertEquals('next',$array[1][0]->getValue('k_array_var'));
@@ -118,6 +155,24 @@ class ConfigBuilderTest extends \PHPUnit_Framework_TestCase{
         $container=$this->config->parse();
 
         $this->checkAssert($container);
+
+    }
+
+    /**
+     * @param $config
+     * @return \Exception|null
+     */
+    private function getException($config){
+        $exception=null;
+
+        try{
+            $config->parse();
+        }
+        catch(\Exception $e){
+            $exception=$e;
+        }
+
+        return $exception;
 
     }
 

@@ -25,20 +25,31 @@ class ConfigBuilderArray
      * @var mixed
      */
     private $value;
-
     /**
      * @var string
      */
     private $type;
+    /**
+     * @var int
+     */
+    private $min;
+    /**
+     * @var int
+     */
+    private $max;
 
     /**
      * ConfigBuilderArray constructor.
      * @param mixed $value
+     * @param int $min
+     * @param int $max
      */
-    public function __construct($value)
+    public function __construct($value,$min=0,$max=null)
     {
         $this->value = $value;
         $this->type = $this->parseType();
+        $this->min = $min;
+        $this->max = $max;
     }
 
     /**
@@ -83,5 +94,21 @@ class ConfigBuilderArray
     public function getValue()
     {
         return $this->value;
+    }
+
+    /**
+     * @return int
+     */
+    public function getMin()
+    {
+        return $this->min;
+    }
+
+    /**
+     * @return int
+     */
+    public function getMax()
+    {
+        return $this->max;
     }
 }

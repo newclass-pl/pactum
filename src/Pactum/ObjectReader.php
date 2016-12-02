@@ -38,4 +38,8 @@ interface ObjectReader{
      */
     public function getValue($name);
 
+    /**
+     * @return string
+     */
+    public function getPath();
 }

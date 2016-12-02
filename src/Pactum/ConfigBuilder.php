@@ -127,29 +127,49 @@ class ConfigBuilder extends ConfigBuilderObject{
      * @param string $name
      * @param ConfigBuilderArray $builder
      * @return ConfigContainer[]
+     * @throws ElementNotFoundException
+     * @throws TooManyElementException
      */
     private function parseArray(array $readers, $name, ConfigBuilderArray $builder){
         $results=[];
-        $readers=$this->readArray($readers,$name);
+        try {
+            $readers = $this->readArray($readers, $name);
+        } catch (ElementNotFoundException $e) {
+            if($builder->getMin()!==0){
+                throw $e;
+            }
+            return $results;
+        }
+
         $type=$builder->getType();
         $builderArray=$builder->getValue();
         switch ($type){
             case 'object':
-                foreach($readers[0]->getObjects() as $name=> $builder){
+                foreach($readers[0]->getObjects() as $name=> $subBuilder){
                     $results[$name]=$this->parseObject($readers,$name,$builderArray);
                 }
                 break;
             case 'array':
-                foreach($readers[0]->getArrays() as $name=> $builder){
+                foreach($readers[0]->getArrays() as $name=> $subBuilder){
                     $results[$name]=$this->parseArray($readers,$name,$builderArray);
                 }
                 break;
             default:
-                foreach($readers[0]->getValues() as $name=> $builder){
+                foreach($readers[0]->getValues() as $name=> $subBuilder){
                     $results[$name]=$this->parseValue($readers,$name,$builderArray);
                 }
 
         }
+
+        $resultNumber=count($results);
+        if($builder->getMin()>$resultNumber){
+            throw new InvalidNumberElementException($readers[0]->getPath(),$builder->getMin(),$resultNumber);
+        }
+
+        if($builder->getMax()!==null && $resultNumber>$builder->getMax()){
+            throw new InvalidNumberElementException($readers[0]->getPath(),$builder->getMax(),$resultNumber);
+        }
+
         return $results;
     }
 
@@ -178,7 +198,7 @@ class ConfigBuilder extends ConfigBuilderObject{
         }
 
         if(count($records)>1){
-            throw new TooManyElementException($name);
+            throw new TooManyElementException($readers[0]->getPath(),$name);
         }
         return $records[0];
 
@@ -209,7 +229,7 @@ class ConfigBuilder extends ConfigBuilderObject{
         }
 
         if(count($records)>1){
-            throw new TooManyElementException($name);
+            throw new TooManyElementException($readers[0]->getPath(),$name);
         }
 
         return $records;
@@ -241,7 +261,7 @@ class ConfigBuilder extends ConfigBuilderObject{
         }
 
         if(count($records)>1){
-            throw new TooManyElementException($name);
+            throw new TooManyElementException($readers[0]->getPath(),$name);
         }
 
         return $records;

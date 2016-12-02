@@ -72,6 +72,17 @@ class ConfigBuilderObject
     }
 
     /**
+     *
+     * @param string $name
+     * @param string $default
+     * @return $this
+     */
+    public function addMixed($name, $default = null)
+    {
+        return $this->addValue('mixed', $name, $default);
+    }
+
+    /**
      * @param string $type
      * @param string $name
      * @param mixed $default
@@ -121,11 +132,13 @@ class ConfigBuilderObject
      *
      * @param string $name
      * @param mixed $value
+     * @param int $min
+     * @param int $max
      * @return ConfigBuilderArray
      */
-    public function addArray($name, $value)
+    public function addArray($name, $value,$min=0,$max=null)
     {
-        $this->arrays[$name] = new ConfigBuilderArray($value);
+        $this->arrays[$name] = new ConfigBuilderArray($value,$min,$max);
         return $this->arrays[$name];
     }
 

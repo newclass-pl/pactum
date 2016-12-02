@@ -151,4 +151,12 @@ class XMLArrayReader implements ArrayReader
 
         return $results;
     }
+
+    /**
+     * @return string
+     */
+    public function getPath()
+    {
+        return $this->path;
+    }
 }

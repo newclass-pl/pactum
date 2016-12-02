@@ -108,4 +108,12 @@ class JSONReader implements ObjectReader
         }
         return $this->json[$name];
     }
+
+    /**
+     * @return string
+     */
+    public function getPath()
+    {
+        return $this->path;
+    }
 }

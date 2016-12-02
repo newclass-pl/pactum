@@ -73,7 +73,8 @@ class ConfigBuilderValue{
                 return $value===null || is_numeric($value);
             case 'boolean':
                 return $value===null || is_bool($value);
-                break;
+            case 'mixed':
+                return true;
                 default:
                     throw new InvalidTypeException($this->type);
 

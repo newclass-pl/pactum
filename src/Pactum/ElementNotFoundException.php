@@ -29,6 +29,6 @@ class ElementNotFoundException extends ConfigException
      */
     public function __construct($containerPath, $name)
     {
-        parent::__construct('Element "'.$name.'" not found in "'.$containerPath.'"');
+        parent::__construct('Element "'.$name.'" not found in "'.$containerPath.'".');
     }
 }

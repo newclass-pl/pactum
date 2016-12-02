@@ -85,6 +85,21 @@ class ConfigBuilderValueTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     *
+     */
+    public function testTypeMixed(){
+        $e=$this->getException('mixed',true);
+        $this->assertNull($e);
+
+        $e=$this->getException('mixed','string');
+        $this->assertNull($e);
+
+        $e=$this->getException('mixed',1132.232);
+        $this->assertNull($e);
+
+    }
+
+    /**
      * @param string $type
      * @param mixed $default
      * @return \Exception|null

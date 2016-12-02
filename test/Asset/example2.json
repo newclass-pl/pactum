@@ -1,5 +1,7 @@
 {
   "other": "file",
+  "v_mixed1":"test",
+  "v_mixed2":true,
   "k_array": [
     [
       {

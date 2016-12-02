@@ -24,10 +24,11 @@ class TooManyElementException extends ConfigException
 
     /**
      * TooManyElementException constructor.
+     * @param string $containerPath
      * @param string $name
      */
-    public function __construct($name)
+    public function __construct($containerPath,$name)
     {
-        parent::__construct('Too many elements "'.$name.'".');
+        parent::__construct('Too many elements "'.$name.'" in "'.$containerPath.'".');
     }
 }
