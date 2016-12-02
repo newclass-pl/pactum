@@ -1,0 +1,22 @@
+{
+  "variable": [
+    {
+      "name": "forString",
+      "value": "string data"
+    },
+    {
+      "name": "forBoolean",
+      "value": true
+    },
+    {
+      "name": "forNumber",
+      "value": 1234
+    }
+  ],
+  "var1": "@{forString}",
+  "var2": "@{forBoolean}",
+  "data": [
+    "@{forNumber}",
+    3
+  ]
+}

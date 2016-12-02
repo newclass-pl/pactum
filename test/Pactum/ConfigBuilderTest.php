@@ -17,8 +17,8 @@ use Pactum\ConfigBuilder;
 use Pactum\ConfigBuilderObject;
 use Pactum\ConfigBuilderValue;
 use Pactum\ConfigContainer;
-use Pactum\ElementNotFoundException;
 use Pactum\InvalidNumberElementException;
+use Pactum\ParserProcess;
 use Pactum\Reader\JSONReader;
 use Pactum\Reader\XMLReader;
 
@@ -105,6 +105,30 @@ class ConfigBuilderTest extends \PHPUnit_Framework_TestCase{
 
     }
 
+    public function testParseJSONInvalidNumberElementException(){
+
+        $path=realpath(__DIR__.'/..');
+        $this->config=new ConfigBuilder();
+        $this->config->addArray('list',new ConfigBuilderValue('number'),3);
+
+        $xmlReader=new JSONReader($path.'/Asset/example3.json');
+        $this->config->addReader($xmlReader);
+        $exception=$this->getException($this->config);
+        $this->assertNotNull($exception);
+        $this->assertEquals(InvalidNumberElementException::class,get_class($exception));
+        $this->assertEquals('Invalid number element "root->list". Required 3, received 2.',$exception->getMessage());
+
+        $this->config=new ConfigBuilder();
+        $this->config->addArray('list',new ConfigBuilderValue('number'),0,1);
+
+        $xmlReader=new XMLReader($path.'/Asset/example3.xml');
+        $this->config->addReader($xmlReader);
+        $exception=$this->getException($this->config);
+        $this->assertNotNull($exception);
+        $this->assertEquals(InvalidNumberElementException::class,get_class($exception));
+        $this->assertEquals('Invalid number element "root->list". Required 1, received 2.',$exception->getMessage());
+
+    }
 
 
     /**
@@ -159,6 +183,106 @@ class ConfigBuilderTest extends \PHPUnit_Framework_TestCase{
     }
 
     /**
+     *
+     */
+    public function testFilterVariable(){
+
+        $path=realpath(__DIR__.'/..');
+        $config=new ConfigBuilder();
+        $variables=[];
+        $config->addFilter(function (ParserProcess $parser) use (&$variables){
+
+            if($parser->getPath()==='root->variable'){
+                /**
+                 * @var ConfigBuilderObject $value
+                 */
+                foreach($parser->getValue() as $value){
+                    $variables[$value->getValue('name')]=$value->getValue('value');
+                }
+                return;
+            }
+        });
+
+        $config->addFilter(function (ParserProcess $parser) use(&$variables){
+            if(in_array($parser->getType(),['string','boolean','mixed','number']) && is_string($parser->getValue())){
+
+                $value=$parser->getValue();
+                preg_match_all('/@\{(.+?)\}/',$parser->getValue(),$matches);
+                for($i=0; $i<count($matches[0]); $i++){
+                    if(is_string($variables[$matches[1][$i]]) && $value!==$matches[0][$i]){
+                        $value=str_replace($matches[0][$i],$variables[$matches[1][$i]],$value);
+                        continue;
+                    }
+                    $value=$variables[$matches[1][$i]];
+
+                }
+                $parser->setValue($value);
+
+            }
+        });
+
+        $config
+            ->addArray("variable",new ConfigBuilderObject())->getValue()
+            ->addString('name')
+            ->addMixed('value');
+
+        $config
+            ->addArray("data",new ConfigBuilderValue('number'));
+
+
+        $config->addString('var1')
+            ->addBoolean('var2');
+
+        $xmlReader=new JSONReader($path.'/Asset/example4.json');
+        $config->addReader($xmlReader);
+
+        $container=$config->parse();
+        $this->assertEquals('string data',$container->getValue('var1'));
+        $this->assertEquals(true,$container->getValue('var2'));
+        $this->assertEquals([1234,3],$container->getArray('data'));
+
+    }
+
+    /**
+     *
+     */
+    public function testFilterImport(){
+
+        $path=realpath(__DIR__.'/..');
+        $config=new ConfigBuilder();
+        $config->addFilter(function (ParserProcess $parser) use ($path){
+
+            if($parser->getType()==='string' && $parser->getPath()==='root->import'){
+                $record=$parser->getValue();
+                $importReader=new JSONReader($path.'/Asset/'.$record);
+                $parser->addReader($importReader);
+
+                return;
+            }
+        });
+
+        $config
+            ->addArray("import",new ConfigBuilderValue("string"));
+
+        $config
+            ->addArray("data",new ConfigBuilderValue('number'));
+
+
+        $config->addString('var1')
+            ->addString('var2');
+        $config->addString('var3');
+
+        $xmlReader=new JSONReader($path.'/Asset/example5.json');
+        $config->addReader($xmlReader);
+
+        $container=$config->parse();
+        $this->assertEquals('1',$container->getValue('var1'));
+        $this->assertEquals('2',$container->getValue('var2'));
+        $this->assertEquals('3',$container->getValue('var3'));
+
+    }
+
+    /**
      * @param $config
      * @return \Exception|null
      */
@@ -173,7 +297,6 @@ class ConfigBuilderTest extends \PHPUnit_Framework_TestCase{
         }
 
         return $exception;
-
     }
 
 }

@@ -66,7 +66,6 @@ class JSONReader implements ObjectReader
         if($type==='o'){
             $this->json=$data;
         }
-
         $this->path=$path;
     }
 
@@ -80,7 +79,7 @@ class JSONReader implements ObjectReader
         if(!isset($this->json[$name])){
             throw new ElementNotFoundException($this->path,$name);
         }
-        return new JSONArrayReader($this->json[$name],'o',$this->path.'->'.$name);
+        return new JSONArrayReader($this->json[$name],$this->path.'->'.$name);
     }
 
     /**
