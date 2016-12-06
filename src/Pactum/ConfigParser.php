@@ -175,6 +175,7 @@ class ConfigParser
      * @param string $name
      * @param ConfigBuilderArray $builder
      * @return ConfigContainer[]
+     * @throws ConfigException
      * @throws ElementNotFoundException
      * @throws InvalidNumberElementException
      */
@@ -194,18 +195,20 @@ class ConfigParser
         $builderArray = $builder->getValue();
         switch ($type) {
             case 'array':
-                foreach ($readers[0]->getArrays() as $name => $subBuilder) {
-                    $results[$name] = $this->parseArray($readers, $name, $builderArray);
-                }
-                break;
+                throw new ConfigException('Deep array is not supported. Use object instead array.');
+
             case 'object':
-                foreach ($readers[0]->getObjects() as $name => $subBuilder) {
-                    $results[$name] = $this->parseObject($readers, $name, $builderArray);
+                foreach($readers as $reader) {
+                    foreach ($reader->getObjects() as $name => $subBuilder) {
+                        $results[] = $this->parseObject([$reader], $name, $builderArray);
+                    }
                 }
                 break;
             default:
-                foreach ($readers[0]->getValues() as $name => $subBuilder) {
-                    $results[$name] = $this->parseValue($readers, $name, $builderArray);
+                foreach($readers as $reader) {
+                    foreach ($reader->getValues() as $name => $subBuilder) {
+                        $results[] = $this->parseValue([$reader], $name, $builderArray);
+                    }
                 }
 
         }
@@ -291,7 +294,7 @@ class ConfigParser
     /**
      * @param ObjectReader[] $readers
      * @param string $name
-     * @return mixed
+     * @return mixed[]
      * @throws ElementNotFoundException
      * @throws TooManyElementException
      */
@@ -309,10 +312,6 @@ class ConfigParser
 
         if (!$records) {
             throw $exception;
-        }
-
-        if (count($records) > 1) {
-            throw new TooManyElementException($readers[0]->getPath(), $name);
         }
 
         return $records;

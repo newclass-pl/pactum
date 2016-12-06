@@ -1,7 +1,16 @@
 {
   "other": "file",
-  "v_mixed1":"test",
-  "v_mixed2":true,
+  "v_mixed1": "test",
+  "v_mixed2": true,
+  "v_array": [
+    5,
+    6
+  ],
+  "d_array": [
+    {
+      "test": "next"
+    }
+  ],
   "k_array": [
     [
       {

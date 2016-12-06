@@ -143,15 +143,18 @@ class ConfigBuilderTest extends \PHPUnit_Framework_TestCase{
         $this->assertEquals('test',$container->getValue('v_mixed1'));
         $this->assertEquals(true,$container->getValue('v_mixed2'));
         $array=$container->getArray("d_array");
-        $this->assertCount(1,$array);
+        $this->assertCount(2,$array);
         /**
          * @var ConfigContainer $obj;
          */
         $obj=$array[0];
         $this->assertEquals('wdwd',$obj->getValue('test'));
+        $obj=$array[1];
+        $this->assertEquals('next',$obj->getValue('test'));
+
         $array=$container->getArray('v_array');
-        $this->assertCount(4,$array);
-        $this->assertEquals([1,2,3,4],$array);
+        $this->assertCount(6,$array);
+        $this->assertEquals([1,2,3,4,5,6],$array);
         $object=$container->getObject('v_object');
         $this->assertEquals('data',$object->getValue('v_text'));
         $this->assertEquals(1233,$object->getValue('number'));

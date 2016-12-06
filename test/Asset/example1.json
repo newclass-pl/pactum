@@ -1,18 +1,21 @@
 {
-  "booleanTrue":true
-  ,"booleanFalse":false
-  ,"number1":1
-  ,"number2":0.65
-  ,"text":"value text"
-  ,"v_array":[
-    1,2,3,4
-  ]
-  ,"d_array":[
+  "booleanTrue": true,
+  "booleanFalse": false,
+  "number1": 1,
+  "number2": 0.65,
+  "text": "value text",
+  "v_array": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "d_array": [
     {
-      "test":"wdwd"
+      "test": "wdwd"
     }
-  ]
-  ,"v_object":{
-    "v_text":"data"
+  ],
+  "v_object": {
+    "v_text": "data"
   }
 }

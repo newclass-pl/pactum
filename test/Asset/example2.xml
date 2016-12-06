@@ -2,4 +2,8 @@
 
 <content other="file" v_mixed1="test" v_mixed2="!true">
 
+    <v_array value="!5"/>
+    <v_array value="!6"/>
+    <d_array test="next"/>
+
 </content>
