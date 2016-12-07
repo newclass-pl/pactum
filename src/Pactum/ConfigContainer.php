@@ -56,7 +56,7 @@ class ConfigContainer{
 	 * @throws ConfigException
 	 */	
 	public function getObject($name){
-		if(!isset($this->objects[$name])){
+		if(!array_key_exists($name,$this->objects)){
 			throw new ConfigException('Object "'.$name.'" not found.');
 		}
 		return $this->objects[$name];
@@ -69,7 +69,7 @@ class ConfigContainer{
      * @throws ConfigException
      */
     public function getArray($name){
-        if(!isset($this->arrays[$name])){
+        if(!array_key_exists($name,$this->arrays)){
             throw new ConfigException('Array "'.$name.'" not found.');
         }
         return $this->arrays[$name];
@@ -82,7 +82,7 @@ class ConfigContainer{
 	 * @throws ConfigException
 	 */	
 	public function getValue($name){
-		if(!isset($this->values[$name])){
+		if(!array_key_exists($name,$this->values)){
 			throw new ConfigException('Value "'.$name.'" not found.');
 		}
 		return $this->values[$name];

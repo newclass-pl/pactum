@@ -37,6 +37,19 @@ class ConfigBuilderObject
      * @var ConfigBuilderArray[]
      */
     private $arrays = [];
+    /**
+     * @var bool
+     */
+    private $required;
+
+    /**
+     * ConfigBuilderObject constructor.
+     * @param bool $required
+     */
+    public function __construct($required=true)
+    {
+        $this->required = $required;
+    }
 
     /**
      *
@@ -120,11 +133,12 @@ class ConfigBuilderObject
     /**
      *
      * @param $name
+     * @param bool $required
      * @return ConfigBuilderObject
      */
-    public function addObject($name)
+    public function addObject($name,$required=true)
     {
-        $this->objects[$name] = new ConfigBuilderObject();
+        $this->objects[$name] = new ConfigBuilderObject($required);
         return $this->objects[$name];
     }
 
@@ -186,6 +200,14 @@ class ConfigBuilderObject
             throw new ConfigException('Object ' . $name . ' not found.');
         }
         return $this->objects[$name];
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isRequired()
+    {
+        return $this->required;
     }
 
 }

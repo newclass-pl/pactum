@@ -50,7 +50,7 @@ class ConfigParser
      * @param ConfigBuilderArray[] $arrays
      * @param ConfigBuilderValue[] $values
      */
-    public function __construct($readers,$filters, $objects, $arrays, $values)
+    public function __construct($readers, $filters, $objects, $arrays, $values)
     {
         $this->objects = $objects;
         $this->arrays = $arrays;
@@ -64,8 +64,8 @@ class ConfigParser
      */
     public function execute()
     {
-        if(!$this->readers){
-            return new ConfigContainer([],[],[]);
+        if (!$this->readers) {
+            return new ConfigContainer([], [], []);
         }
 
         $result = [];
@@ -106,21 +106,21 @@ class ConfigParser
      */
     private function parseValue(array $readers, $name, ConfigBuilderValue $builder)
     {
-        $exception=null;
+        $exception = null;
         $value = null;
         try {
             $value = $this->readValue($readers, $name);
         } catch (ElementNotFoundException $e) {
-            $exception=$e;
+            $exception = $e;
         }
 
-        $process=new ParserProcess($this,$builder->getType(),$readers[0]->getPath(),$name,$builder,$value);
+        $process = new ParserProcess($this, $builder->getType(), $readers[0]->getPath(), $name, $builder, $value);
 
         $this->fireFilters($process);
 
-        $value=$process->getValue();
+        $value = $process->getValue();
 
-        if($exception!==null && $value===null){
+        if ($exception !== null && $value === null) {
             if ($builder->isRequired()) {
                 throw $exception;
             }
@@ -140,10 +140,19 @@ class ConfigParser
      * @param string $name
      * @param ConfigBuilderObject $builder
      * @return ConfigContainer
+     * @throws ElementNotFoundException
      */
     private function parseObject(array $readers, $name, ConfigBuilderObject $builder)
     {
-        $readers = $this->readObject($readers, $name);
+        try {$readers = $this->readObject($readers, $name);
+        } catch (ElementNotFoundException $e) {
+            if(!$builder->isRequired()){
+                return null;
+            }
+
+            throw $e;
+        }
+
         $objects = [];
         $arrays = [];
         $values = [];
@@ -160,11 +169,11 @@ class ConfigParser
             $values[$name] = $this->parseValue($readers, $name, $subBuilder);
         }
 
-        $value=new ConfigContainer($objects, $arrays, $values);
-        $process=new ParserProcess($this,'object',$readers[0]->getPath(),$name,$builder,$value);
+        $value = new ConfigContainer($objects, $arrays, $values);
+        $process = new ParserProcess($this, 'object', $readers[0]->getPath(), $name, $builder, $value);
 
         $this->fireFilters($process);
-        $value=$process->getValue();
+        $value = $process->getValue();
 
         return $value;
     }
@@ -198,14 +207,14 @@ class ConfigParser
                 throw new ConfigException('Deep array is not supported. Use object instead array.');
 
             case 'object':
-                foreach($readers as $reader) {
+                foreach ($readers as $reader) {
                     foreach ($reader->getObjects() as $name => $subBuilder) {
                         $results[] = $this->parseObject([$reader], $name, $builderArray);
                     }
                 }
                 break;
             default:
-                foreach($readers as $reader) {
+                foreach ($readers as $reader) {
                     foreach ($reader->getValues() as $name => $subBuilder) {
                         $results[] = $this->parseValue([$reader], $name, $builderArray);
                     }
@@ -213,10 +222,10 @@ class ConfigParser
 
         }
 
-        $process=new ParserProcess($this,'array',$readers[0]->getPath(),$name,$builder,$results);
+        $process = new ParserProcess($this, 'array', $readers[0]->getPath(), $name, $builder, $results);
 
         $this->fireFilters($process);
-        $results=$process->getValue();
+        $results = $process->getValue();
 
         $resultNumber = count($results);
         if ($builder->getMin() > $resultNumber) {
@@ -323,8 +332,8 @@ class ConfigParser
      */
     private function fireFilters($process)
     {
-        foreach($this->filters as $filter){
-            call_user_func($filter,$process);
+        foreach ($this->filters as $filter) {
+            call_user_func($filter, $process);
         }
     }
 
@@ -333,6 +342,6 @@ class ConfigParser
      */
     public function addReader($reader)
     {
-        $this->readers[]=$reader;
+        $this->readers[] = $reader;
     }
 }

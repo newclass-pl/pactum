@@ -17,6 +17,7 @@ use Pactum\ConfigBuilder;
 use Pactum\ConfigBuilderObject;
 use Pactum\ConfigBuilderValue;
 use Pactum\ConfigContainer;
+use Pactum\ElementNotFoundException;
 use Pactum\InvalidNumberElementException;
 use Pactum\ParserProcess;
 use Pactum\Reader\JSONReader;
@@ -57,7 +58,11 @@ class ConfigBuilderTest extends \PHPUnit_Framework_TestCase{
             ->addNumber("number",1233);
 //        $this->config->addArray("k_array",new ConfigBuilderArray(new ConfigBuilderObject()))
 //            ->getValue()->getValue()->addString('k_array_var');
+
         $this->config->addArray("n_array",new ConfigBuilderValue('number'));
+
+        $this->config->addObject("not_required",false)
+            ->addNumber("num");
 
     }
 
@@ -130,6 +135,22 @@ class ConfigBuilderTest extends \PHPUnit_Framework_TestCase{
 
     }
 
+    public function testParseJSONElementNotFoundException(){
+
+        $path=realpath(__DIR__.'/..');
+        $this->config=new ConfigBuilder();
+        $this->config->addObject('element');
+
+        $xmlReader=new JSONReader($path.'/Asset/example3.json');
+        $this->config->addReader($xmlReader);
+        $exception=$this->getException($this->config);
+        $this->assertNotNull($exception);
+        $this->assertInstanceOf(ElementNotFoundException::class,$exception);
+        $this->assertEquals('Element "element" not found in "root".',$exception->getMessage());
+
+
+    }
+
 
     /**
      * @param ConfigContainer $container
@@ -160,6 +181,7 @@ class ConfigBuilderTest extends \PHPUnit_Framework_TestCase{
         $this->assertEquals(1233,$object->getValue('number'));
         $this->assertEquals([],$container->getArray('n_array'));
 
+        $this->assertNull($container->getObject('not_required'));
         //        $array=$container->getArray("k_array");
 //        $this->assertCount(2,$array);
 //        $this->assertEquals('set',$array[0][0]->getValue('k_array_var'));
