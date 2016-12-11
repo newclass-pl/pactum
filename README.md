@@ -14,9 +14,8 @@ Installation
 
 The best way to install is to use the composer by command:
 
-composer require newclass/pactum
-
-composer install
+    composer require newclass/pactum
+    composer install
 
 Use example
 -------------
@@ -44,3 +43,6 @@ Use example
     $valueBoolean=$container->getValue('booleanTrue');
     $valueArray=$container->getArray("d_array");
     
+    //or get object with getters
+    $obj=$container->getConfig();
+    $obj->getNumber1(); //return 1
