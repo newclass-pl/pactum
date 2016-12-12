@@ -76,8 +76,8 @@ class ClassCache
         }
 
         $template .= "}\n";
-        if(!file_exists($this->directory) && !mkdir($this->directory,0755,true)){
-            throw new ConfigException('Can\'t create directory "'.$this->directory.'".');
+        if (!file_exists($this->directory) && !mkdir($this->directory, 0755, true)) {
+            throw new ConfigException('Can\'t create directory "' . $this->directory . '".');
         }
         file_put_contents($this->directory . '/' . $this->className . '.php', $template);
     }
@@ -134,21 +134,22 @@ class ClassCache
         if ($value instanceof ConfigBuilderObject) {
 
             $namespace = $this->namespace . '\\' . $this->className;
-                $subclass=new ClassCache($this->directory . '/' . $this->className, $namespace, $methodName, $value->getObjects(),
+            $subclass =
+                new ClassCache($this->directory . '/' . $this->className, $namespace, $methodName, $value->getObjects(),
                     $value->getArrays(), $value->getValues());
-                $subclass->generateClass();
+            $subclass->generateClass();
 
-            return $namespace . '\\' . $methodName;
+            return '\\' . $namespace . '\\' . $methodName;
         }
 
         if ($value instanceof ConfigBuilderArray) {
-            return $this->generateReturnType($methodName,$value->getValue()).'[]';
+            return $this->generateReturnType($methodName, $value->getValue()) . '[]';
         }
 
         return 'null';
     }
 
-    private function generateGetterValue($key, $value,$array=false)
+    private function generateGetterValue($key, $value, $array = false)
     {
         if ($value instanceof ConfigBuilderObject) {
             $methodName = $this->filterName($key);
@@ -156,21 +157,22 @@ class ClassCache
             $namespace = $this->namespace . '\\' . $this->className;
             $template = "";
 
-            if($array){
-                $template.= "        \$value=[];\n";
-                $template.= "        foreach(\$this->data['" . $key . "'] as \$record)\n";
-                $template.= "        {\n";
-                $template.= "            \$value[]=new \\".$namespace . '\\' . $methodName."(\$record);\n";
-                $template.= "        }\n";
+            if ($array) {
+                $template .= "        \$value=[];\n";
+                $template .= "        foreach(\$this->data['" . $key . "'] as \$record)\n";
+                $template .= "        {\n";
+                $template .= "            \$value[]=new \\" . $namespace . '\\' . $methodName . "(\$record);\n";
+                $template .= "        }\n";
                 return $template;
             }
 
-            $template = "        \$value=new \\".$namespace . '\\' . $methodName."(\$this->data['" . $key . "']);\n";
+            $template =
+                "        \$value=new \\" . $namespace . '\\' . $methodName . "(\$this->data['" . $key . "']);\n";
             return $template;
         }
 
         if ($value instanceof ConfigBuilderArray) {
-            return $this->generateGetterValue($key,$value->getValue(),true);
+            return $this->generateGetterValue($key, $value->getValue(), true);
         }
 
         $template = "        \$value=\$this->data['" . $key . "'];\n";
