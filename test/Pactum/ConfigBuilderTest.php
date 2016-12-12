@@ -80,7 +80,7 @@ class ConfigBuilderTest extends \PHPUnit_Framework_TestCase{
         $this->config->addReader($xmlReader);
 
 
-        $container=$this->config->parse();
+        $container=$this->config->getContainer();
         $this->checkAssert($container);
 
     }
@@ -156,32 +156,36 @@ class ConfigBuilderTest extends \PHPUnit_Framework_TestCase{
      * @param ConfigContainer $container
      */
     private function checkAssert(ConfigContainer $container){
-        $this->assertEquals(true,$container->getValue('booleanTrue'));
-        $this->assertEquals(false,$container->getValue('booleanFalse'));
-        $this->assertEquals(1,$container->getValue('number1'));
-        $this->assertEquals(0.65,$container->getValue('number2'));
-        $this->assertEquals('value text',$container->getValue('text'));
-        $this->assertEquals('test',$container->getValue('v_mixed1'));
-        $this->assertEquals(true,$container->getValue('v_mixed2'));
-        $array=$container->getArray("d_array");
+        $this->assertEquals(true,$container->getData('booleanTrue'));
+        $this->assertEquals(false,$container->getData('booleanFalse'));
+        $this->assertEquals(1,$container->getData('number1'));
+        $this->assertEquals(0.65,$container->getData('number2'));
+        $this->assertEquals('value text',$container->getData('text'));
+        $this->assertEquals('test',$container->getData('v_mixed1'));
+        $this->assertEquals(true,$container->getData('v_mixed2'));
+        $array=$container->getData("d_array");
         $this->assertCount(2,$array);
         /**
          * @var ConfigContainer $obj;
          */
         $obj=$array[0];
-        $this->assertEquals('wdwd',$obj->getValue('test'));
+        $this->assertEquals('wdwd',$obj->getData('test'));
         $obj=$array[1];
-        $this->assertEquals('next',$obj->getValue('test'));
+        $this->assertEquals('next',$obj->getData('test'));
 
-        $array=$container->getArray('v_array');
+        $array=$container->getData('v_array');
         $this->assertCount(6,$array);
         $this->assertEquals([1,2,3,4,5,6],$array);
-        $object=$container->getObject('v_object');
-        $this->assertEquals('data',$object->getValue('v_text'));
-        $this->assertEquals(1233,$object->getValue('number'));
-        $this->assertEquals([],$container->getArray('n_array'));
 
-        $this->assertNull($container->getObject('not_required'));
+        /**
+         * @var ConfigContainer $object
+         */
+        $object=$container->getData('v_object');
+        $this->assertEquals('data',$object->getData('v_text'));
+        $this->assertEquals(1233,$object->getData('number'));
+        $this->assertEquals([],$container->getData('n_array'));
+
+        $this->assertNull($container->getData('not_required'));
         //        $array=$container->getArray("k_array");
 //        $this->assertCount(2,$array);
 //        $this->assertEquals('set',$array[0][0]->getValue('k_array_var'));
@@ -201,7 +205,7 @@ class ConfigBuilderTest extends \PHPUnit_Framework_TestCase{
         $xmlReader=new JSONReader($path.'/Asset/example2.json');
         $this->config->addReader($xmlReader);
 
-        $container=$this->config->parse();
+        $container=$this->config->getContainer();
 
         $this->checkAssert($container);
 
@@ -222,7 +226,7 @@ class ConfigBuilderTest extends \PHPUnit_Framework_TestCase{
                  * @var ConfigBuilderObject $value
                  */
                 foreach($parser->getValue() as $value){
-                    $variables[$value->getValue('name')]=$value->getValue('value');
+                    $variables[$value['name']]=$value['value'];
                 }
                 return;
             }
@@ -261,10 +265,10 @@ class ConfigBuilderTest extends \PHPUnit_Framework_TestCase{
         $xmlReader=new JSONReader($path.'/Asset/example4.json');
         $config->addReader($xmlReader);
 
-        $container=$config->parse();
-        $this->assertEquals('string data',$container->getValue('var1'));
-        $this->assertEquals(true,$container->getValue('var2'));
-        $this->assertEquals([1234,3],$container->getArray('data'));
+        $container=$config->getContainer();
+        $this->assertEquals('string data',$container->getData('var1'));
+        $this->assertEquals(true,$container->getData('var2'));
+        $this->assertEquals([1234,3],$container->getData('data'));
 
     }
 
@@ -300,22 +304,57 @@ class ConfigBuilderTest extends \PHPUnit_Framework_TestCase{
         $xmlReader=new JSONReader($path.'/Asset/example5.json');
         $config->addReader($xmlReader);
 
-        $container=$config->parse();
-        $this->assertEquals('1',$container->getValue('var1'));
-        $this->assertEquals('2',$container->getValue('var2'));
-        $this->assertEquals('3',$container->getValue('var3'));
+        $container=$config->getContainer();
+        $this->assertEquals('1',$container->getData('var1'));
+        $this->assertEquals('2',$container->getData('var2'));
+        $this->assertEquals('3',$container->getData('var3'));
 
     }
 
     /**
-     * @param $config
+     *
+     */
+    public function testGetClass(){
+
+        $path=realpath(__DIR__.'/..');
+
+        $xmlReader=new XMLReader($path.'/Asset/example1.xml');
+        $this->config->addReader($xmlReader);
+
+        $xmlReader=new XMLReader($path.'/Asset/example2.xml');
+        $this->config->addReader($xmlReader);
+
+        $obj=$this->config->getClass(sys_get_temp_dir().'/Tmp','Tmp');
+        $this->assertEquals(true ,$obj->isBooleanTrue());
+        $this->assertEquals(false ,$obj->isBooleanFalse());
+        $this->assertEquals(1 ,$obj->getNumber1());
+        $this->assertEquals(0.65 ,$obj->getNumber2());
+        $this->assertEquals('value text' ,$obj->getText());
+        $this->assertEquals([1,2,3,4,5,6] ,$obj->getVArray());
+        /**
+         * @var object[] $dArray
+         */
+        $dArray=$obj->getDArray();
+        $this->assertCount(2,$dArray);
+        $this->assertEquals('wdwd' ,$dArray[0]->getTest());
+        $this->assertEquals('next' ,$dArray[1]->getTest());
+
+        $this->assertEquals('data' ,$obj->getVObject()->getVText());
+        $this->assertEquals('file' ,$obj->getOther());
+        $this->assertEquals('test' ,$obj->getVMixed1());
+        $this->assertEquals(true ,$obj->getVMixed2());
+
+
+    }
+    /**
+     * @param ConfigBuilder $config
      * @return \Exception|null
      */
     private function getException($config){
         $exception=null;
 
         try{
-            $config->parse();
+            $config->getContainer();
         }
         catch(\Exception $e){
             $exception=$e;

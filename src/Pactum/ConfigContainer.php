@@ -13,106 +13,96 @@
 
 namespace Pactum;
 
-use Pactum\Data\Config;
-use Pactum\Cache\ClassCache;
-
 /**
  * Config container.
  * @package Pactum
  * @author Michal Tomczak (michal.tomczak@newclass.pl)
  */
 class ConfigContainer{
-	
+
 	/**
 	 *
 	 * @var mixed[]
 	 */
-	private $arrays=[];
-
-	/**
-	 *
-	 * @var ConfigContainer[][]
-	 */
-	private $objects=[];
-
+	private $data=[];
     /**
      * @var mixed[]
      */
-    private $values;
+    private $cached=[];
 
     /**
-	 *
-	 * @param ConfigContainer[] $objects
-	 * @param mixed[] $arrays
-     * @param mixed[] $values
-	 */
-	public function __construct($objects, $arrays,$values){
-		$this->objects=$objects;
-		$this->arrays=$arrays;
-        $this->values=$values;
+     *
+     * @param mixed[] $data
+     */
+	public function __construct($data){
+		$this->data=$data;
 	}
 
 	/**
 	 *
 	 * @param string $name
-	 * @return ConfigContainer
-	 * @throws ConfigException
-	 */	
-	public function getObject($name){
-		if(!array_key_exists($name,$this->objects)){
-			throw new ConfigException('Object "'.$name.'" not found.');
-		}
-		return $this->objects[$name];
-	}
-
-    /**
-     *
-     * @param string $name
-     * @return mixed[]
+	 * @return \mixed[]
      * @throws ConfigException
-     */
-    public function getArray($name){
-        if(!array_key_exists($name,$this->arrays)){
-            throw new ConfigException('Array "'.$name.'" not found.');
-        }
-        return $this->arrays[$name];
-    }
-
-    /**
-	 *
-	 * @param string $name
-	 * @return mixed
-	 * @throws ConfigException
 	 */	
-	public function getValue($name){
-		if(!array_key_exists($name,$this->values)){
+	public function getData($name){
+        if(array_key_exists($name,$this->cached)){
+            return $this->cached[$name];
+        }
+
+		if(!array_key_exists($name,$this->data)){
 			throw new ConfigException('Value "'.$name.'" not found.');
 		}
-		return $this->values[$name];
+
+		$value=$this->data[$name];
+		if(is_array($value)){
+            $value=$this->filterArray($value);
+        }
+
+        $this->cached[$name]=$value;
+
+        return $value;
 	}
 
     /**
-     * @return mixed[]
+     * @param mixed $arr
+     * @return bool
      */
-    public function getValues()
+    private function isAssoc($arr)
     {
-        return $this->values;
+        if(!is_array($arr)){
+            return false;
+        }
+        if (array() === $arr){
+            return false;
+        }
+
+        return array_keys($arr) !== range(0, count($arr) - 1);
     }
 
-    /**
-     * @return ConfigContainer[]
-     */
-    public function getObjects()
+    private function filterArray($data)
     {
-        return $this->objects;
-    }
+        if(!$data){
+            return [];
+        }
 
-    /**
-     * @return mixed[]
-     */
-    public function getArrays()
-    {
-        return $this->arrays;
+        if($this->isAssoc($data)){
+            return new ConfigContainer($data);
+        }
+
+        $value=$data[0];
+        if(!is_array($value)){
+            return $data;
+        }
+
+        if(!$this->isAssoc($value)){
+            return $data;
+        }
+
+        foreach($data as &$value){
+            $value=new ConfigContainer($value);
+        }
+        return $data;
+
     }
 
     /**
@@ -122,25 +112,4 @@ class ConfigContainer{
     {
         return serialize($this);
     }
-
-    /**
-     * @return Config
-     */
-    public function getConfig(){
-        eval($this->getConfigCode());
-        $className='\\Pactum\\Data\\Config';
-        $obj=new $className();
-        return $obj;
-    }
-
-    /**
-     * @return string
-     */
-    public function getConfigCode(){
-        $classBuilder=new ClassCache($this);
-        $data='namespace Pactum\\Data;';
-        $data.=$classBuilder->generateClass();
-        return $data;
-    }
-
 }

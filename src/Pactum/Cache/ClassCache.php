@@ -13,14 +13,17 @@
 namespace Pactum\Cache;
 
 
-use Pactum\ConfigContainer;
+use Pactum\ConfigBuilderArray;
+use Pactum\ConfigBuilderObject;
+use Pactum\ConfigBuilderValue;
+use Pactum\ConfigException;
 
 /**
  * Class ClassBuilder
  * @package Pactum\Cache
  * @author Michal Tomczak (michal.tomczak@newclass.pl)
  */
-class ClassCache extends AbstractCache
+class ClassCache
 {
     /**
      * @var string
@@ -31,130 +34,147 @@ class ClassCache extends AbstractCache
      */
     private $className;
     /**
-     * @var null
+     * @var mixed
      */
-    private $interfaceName;
+    private $directory;
+    private $elements;
 
     /**
      * ClassBuilder constructor.
-     * @param ConfigContainer $container
-     * @param string $fieldName
-     * @param string $className
-     * @param null $interfaceName
+     * @param mixed $directory
      * @param string $namespace
+     * @param $className
+     * @param ConfigBuilderObject[] $objects
+     * @param ConfigBuilderArray[] $arrays
+     * @param ConfigBuilderValue[] $values
      */
-    public function __construct(ConfigContainer $container = null, $fieldName = '', $className = 'Config',$interfaceName=null,
-                                $namespace = 'Pactum\\Cache')
+    public function __construct($directory, $namespace, $className, $objects, $arrays, $values)
     {
         $this->className = $className;
         $this->namespace = $namespace;
-        parent::__construct($container, $fieldName);
-        $this->interfaceName = $interfaceName;
+        $this->directory = $directory;
+
+        $this->elements = array_merge($objects, $arrays, $values);
     }
 
-    /**
-     * @return string
-     */
     public function generateClass()
     {
-        if ($this->value === null) {
-            return '';
-        }
-        $head = '';
-        $construct = "  public function __construct(){\n";
-        $getters = '';
-        $otherClass = '';
-        foreach ($this->value->getValues() as $key => $value) {
-            $field = new PrimitiveCache($value, $key);
-            $head .= $field->generateDeclaration();
-            $construct .= $field->generateDefinition();
-            $getters .= $field->generateGetterHead()."\n";
-            $getters .= $field->generateGetterBody();
-        }
 
-        foreach ($this->value->getArrays() as $key => $value) {
-            $field = new ArrayCache($value, $key, $this->className . '_' . $key);
-            $head .= $field->generateDeclaration();
-            $construct .= $field->generateDefinition();
-            $getters .= $field->generateGetterHead();
-            $getters .= $field->generateGetterBody();
-            $otherClass .= $field->generateClass();
+        $template = "<?php\n";
+        $template .= "namespace " . $this->namespace . ";\n";
+        $template .= "\n\n";
+        $template .= "class " . $this->className . "\n";
+        $template .= "{\n";
+
+        $template .= "    private \$data=[];\n";
+        $template .= "    private \$cached=[];\n";
+        $template .= "    public function __construct(\$data){\n";
+        $template .= "        \$this->data=\$data;\n";
+        $template .= "    }\n";
+        foreach ($this->elements as $key => $value) {
+            $template .= $this->generateGetter($key, $value);
         }
 
-        foreach ($this->value->getObjects() as $key => $value) {
-            $field = new ClassCache($value, $key, $this->className . '_' . $key);
-            $head .= $field->generateDeclaration();
-            $construct .= $field->generateDefinition();
-            $getters .= $field->generateGetterHead();
-            $getters .= $field->generateGetterBody();
-            $otherClass .= $field->generateClass();
+        $template .= "}\n";
+        if(!file_exists($this->directory) && !mkdir($this->directory,0755,true)){
+            throw new ConfigException('Can\'t create directory "'.$this->directory.'".');
         }
-
-        $construct .= "}\n";
-
-        $otherClass.="class " . $this->className;
-        if($this->interfaceName){
-            $otherClass.=" implements ".$this->interfaceName;
-        }
-
-        return $otherClass."{\n" . $head . $construct . $getters . "}\n";
-
+        file_put_contents($this->directory . '/' . $this->className . '.php', $template);
     }
 
     /**
+     * @param string $name
      * @return string
      */
-    public function generateInterface()
+    protected function filterName($name)
     {
-        $getters = '';
-        foreach ($this->value->getValues() as $key => $value) {
-            $field = new PrimitiveCache($value, $key);
-            $getters .= $field->generateGetterHead().";\n";
+        $parts = preg_split('/[_-]/', $name);
+        $camelCase = '';
+        foreach ($parts as $part) {
+            $camelCase .= ucfirst($part);
         }
 
-        foreach ($this->value->getArrays() as $key => $value) {
-            $field = new ArrayCache($value, $key, $this->className . '_' . $key);
-            $getters .= $field->generateGetterHead().";\n";
-        }
-
-        foreach ($this->value->getObjects() as $key => $value) {
-            $field = new ClassCache($value, $key, $this->className . '_' . $key);
-            $getters .= $field->generateGetterHead().";\n";
-        }
-
-
-        return "interface ".$this->interfaceName."{\n ".$getters."}";
-
+        return preg_replace('/[^a-zA-Z0-9]/', '', $camelCase);
     }
 
     /**
+     * @param string $key
+     * @param mixed $value
      * @return string
      */
-    public function generateDefinition()
+    public function generateGetter($key, $value)
     {
-        $key = $this->filterName($this->key);
-        $fieldName = lcfirst($key);
+        $methodName = $this->filterName($key);
+        $returnType = $this->generateReturnType($methodName, $value);
+        $prefixMethodName = $returnType === 'boolean' ? 'is' : 'get';
+        $template = "   /** @return " . $returnType . " */\n";
+        $template .= "    public function " . $prefixMethodName . $methodName . "()\n";
+        $template .= "    {\n";
+        $template .= "        if(array_key_exists('" . $key . "',\$this->cached))\n";
+        $template .= "        {\n";
+        $template .= "            return \$this->cached['" . $key . "'];\n";
+        $template .= "        }\n";
 
-        $template = '$this->_' . $fieldName . ' =';
+        $template .= $this->generateGetterValue($key, $value);
 
-        if ($this->value === null) {
-            $template .= 'null';
-        } else {
-            $template .= 'new ' . $this->className . '()';
-        }
-        $template .= ';';
+        $template .= "       \$this->cached['" . $key . "']=\$value;\n";
+        $template .= "       return \$value;\n";
+
+        $template .= "    }\n";
+
         return $template;
     }
 
-    /**
-     * @return string
-     */
-    public function getReturnType()
+    private function generateReturnType($methodName, $value)
     {
-        if($this->value===null){
-            return 'null';
+        if ($value instanceof ConfigBuilderValue) {
+            return $value->getType();
         }
 
-        return ($this->interfaceName?$this->interfaceName:$this->className);
+        if ($value instanceof ConfigBuilderObject) {
+
+            $namespace = $this->namespace . '\\' . $this->className;
+                $subclass=new ClassCache($this->directory . '/' . $this->className, $namespace, $methodName, $value->getObjects(),
+                    $value->getArrays(), $value->getValues());
+                $subclass->generateClass();
+
+            return $namespace . '\\' . $methodName;
+        }
+
+        if ($value instanceof ConfigBuilderArray) {
+            return $this->generateReturnType($methodName,$value->getValue()).'[]';
+        }
+
+        return 'null';
     }
+
+    private function generateGetterValue($key, $value,$array=false)
+    {
+        if ($value instanceof ConfigBuilderObject) {
+            $methodName = $this->filterName($key);
+
+            $namespace = $this->namespace . '\\' . $this->className;
+            $template = "";
+
+            if($array){
+                $template.= "        \$value=[];\n";
+                $template.= "        foreach(\$this->data['" . $key . "'] as \$record)\n";
+                $template.= "        {\n";
+                $template.= "            \$value[]=new \\".$namespace . '\\' . $methodName."(\$record);\n";
+                $template.= "        }\n";
+                return $template;
+            }
+
+            $template = "        \$value=new \\".$namespace . '\\' . $methodName."(\$this->data['" . $key . "']);\n";
+            return $template;
+        }
+
+        if ($value instanceof ConfigBuilderArray) {
+            return $this->generateGetterValue($key,$value->getValue(),true);
+        }
+
+        $template = "        \$value=\$this->data['" . $key . "'];\n";
+        return $template;
+    }
+
 }

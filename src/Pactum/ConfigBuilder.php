@@ -12,6 +12,7 @@
  */
 
 namespace Pactum;
+use Pactum\Cache\ClassCache;
 
 /**
  * Config builder.
@@ -49,11 +50,36 @@ class ConfigBuilder extends ConfigBuilderObject{
      *
      * @return ConfigContainer
      */
-    public function parse(){
+    public function getContainer(){
         $parser=new ConfigParser($this->readers,$this->filters,$this->getObjects(),$this->getArrays(),$this->getValues());
-
-        return $parser->execute();
+        $data=$parser->execute();
+        return new ConfigContainer($data);
 
     }
 
+    /**
+     * @param string $directory
+     * @param string $namespace
+     * @return object
+     */
+    public function getClass($directory=null,$namespace=''){
+        if($directory===null){
+            $directory=sys_get_temp_dir();
+        }
+        $this->createConfigClass($directory,$namespace);
+
+        $parser=new ConfigParser($this->readers,$this->filters,$this->getObjects(),$this->getArrays(),$this->getValues());
+
+        $data=$parser->execute();
+        if($namespace!==''){
+            $namespace='\\'.$namespace;
+        }
+        $className=$namespace.'\\Config';
+        return new $className($data);
+    }
+
+    public function createConfigClass($directory,$namespace){
+        $classBuilder=new ClassCache($directory,$namespace,'Config',$this->getObjects(),$this->getArrays(),$this->getValues());
+        $classBuilder->generateClass();
+    }
 }

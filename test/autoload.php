@@ -12,17 +12,26 @@
  */
 
 
-spl_autoload_register(function ($className) {
-    $path=realpath(__DIR__.'/..');
-	$classPath=str_replace('\\', '/', $className);
-	if(strpos($classPath, 'Test')===0){
-		$classPath='test/'.substr($classPath, 4);
-	}
-	else{
-		$classPath='src/'.$classPath;
-	}
+$vendors=[
+    'Pactum'=>realpath(__DIR__.'/..').'/src',
+    'Tmp'=>sys_get_temp_dir(),
+];
 
-	$classPath=$path.'/'.$classPath.'.php';
+spl_autoload_register(function ($className) use ($vendors){
+    $classPath=str_replace('\\', '/', $className);
+    if(strpos($classPath, 'Test')===0){
+        $classPath=realpath(__DIR__.'/..').'/test/'.substr($classPath, 5);
+    }
+    else{
+        foreach($vendors as $kVendor=>$vendor){
+            if(strpos($classPath, $kVendor)===0){
+                $classPath=$vendor.'/'.$classPath;
+                break;
+            }
+
+        }
+    }
+    $classPath=$classPath.'.php';
     if(!file_exists($classPath)){
         return;
     }

@@ -37,12 +37,12 @@ Use example
     $xmlReader=new JSONReader('{"booleanTrue":true,"number1":1,"text":"value text","d_array":[{"test":"wdwd"}]}','s');
     $config->addReader($xmlReader);
     //parse data and generate container
-    $container=$config->parse();
+    $container=$config->getContainer();
     
     //get value from config data
-    $valueBoolean=$container->getValue('booleanTrue');
-    $valueArray=$container->getArray("d_array");
+    $valueBoolean=$container->getData('booleanTrue');
+    $valueArray=$container->getData("d_array");
     
     //or get object with getters
-    $obj=$container->getConfig();
+    $obj=$config->getConfig();
     $obj->getNumber1(); //return 1

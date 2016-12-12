@@ -60,38 +60,29 @@ class ConfigParser
     }
 
     /**
-     * @return ConfigContainer
+     * @return mixed[]
      */
     public function execute()
     {
         if (!$this->readers) {
-            return new ConfigContainer([], [], []);
+            return [];
         }
 
         $result = [];
-        $objects = [];
-        $arrays = [];
-        $values = [];
 
         foreach ($this->arrays as $name => $builder) {
-            $arrays[$name] = $this->parseArray($this->readers, $name, $builder);
+            $result[$name] = $this->parseArray($this->readers, $name, $builder);
         }
-
-        $result['arrays'] = $arrays;
 
         foreach ($this->objects as $name => $builder) {
-            $objects[$name] = $this->parseObject($this->readers, $name, $builder);
+            $result[$name] = $this->parseObject($this->readers, $name, $builder);
         }
-
-        $result['objects'] = $objects;
 
         foreach ($this->values as $name => $builder) {
-            $values[$name] = $this->parseValue($this->readers, $name, $builder);
+            $result[$name] = $this->parseValue($this->readers, $name, $builder);
         }
 
-        $result['values'] = $values;
-
-        return new ConfigContainer($result['objects'], $result['arrays'], $result['values']);
+        return $result;
 
     }
 
@@ -139,7 +130,7 @@ class ConfigParser
      * @param ObjectReader[] $readers
      * @param string $name
      * @param ConfigBuilderObject $builder
-     * @return ConfigContainer
+     * @return mixed[]
      * @throws ElementNotFoundException
      */
     private function parseObject(array $readers, $name, ConfigBuilderObject $builder)
@@ -153,24 +144,21 @@ class ConfigParser
             throw $e;
         }
 
-        $objects = [];
-        $arrays = [];
-        $values = [];
+        $results=[];
 
         foreach ($builder->getArrays() as $name => $subBuilder) {
-            $arrays[$name] = $this->parseArray($readers, $name, $subBuilder);
+            $results[$name] = $this->parseArray($readers, $name, $subBuilder);
         }
 
         foreach ($builder->getObjects() as $name => $subBuilder) {
-            $objects[$name] = $this->parseObject($readers, $name, $subBuilder);
+            $results[$name] = $this->parseObject($readers, $name, $subBuilder);
         }
 
         foreach ($builder->getValues() as $name => $subBuilder) {
-            $values[$name] = $this->parseValue($readers, $name, $subBuilder);
+            $results[$name] = $this->parseValue($readers, $name, $subBuilder);
         }
 
-        $value = new ConfigContainer($objects, $arrays, $values);
-        $process = new ParserProcess($this, 'object', $readers[0]->getPath(), $name, $builder, $value);
+        $process = new ParserProcess($this, 'object', $readers[0]->getPath(), $name, $builder, $results);
 
         $this->fireFilters($process);
         $value = $process->getValue();
@@ -183,7 +171,7 @@ class ConfigParser
      * @param ArrayReader[] $readers
      * @param string $name
      * @param ConfigBuilderArray $builder
-     * @return ConfigContainer[]
+     * @return mixed[]
      * @throws ConfigException
      * @throws ElementNotFoundException
      * @throws InvalidNumberElementException
