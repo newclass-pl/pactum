@@ -166,8 +166,13 @@ class ClassCache
                 return $template;
             }
 
-            $template =
-                "        \$value=new \\" . $namespace . '\\' . $methodName . "(\$this->data['" . $key . "']);\n";
+            $template .= "        if(\$this->data['" . $key . "']===null)\n";
+            $template .= "        {\n";
+            $template .= "            return null;\n";
+            $template .= "        }\n";
+
+            $template .= "        \$value=new \\" . $namespace . '\\' . $methodName . "(\$this->data['" . $key .
+                "']);\n";
             return $template;
         }
 
